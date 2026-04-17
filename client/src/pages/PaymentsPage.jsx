@@ -123,7 +123,8 @@ const PaymentsPage = () => {
                 {contributors.length === 0 ? (
                     <p style={{ color: 'var(--text-muted)' }}>No contributors added yet.</p>
                 ) : (
-                    <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                    <div className="table-scroll">
+                    <table className="responsive-table" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
                                 <th style={{ padding: '1rem 0' }}>Contributor</th>
@@ -140,16 +141,16 @@ const PaymentsPage = () => {
                                 const isPaid = !!payment;
                                 return (
                                     <tr key={contributor._id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                                        <td style={{ padding: '1rem 0', fontWeight: 'bold' }}>{contributor.groupName}</td>
-                                        <td>₹{contributor.monthlyAmount}</td>
-                                        <td>{isPaid ? `₹${payment.amount}` : '-'}</td>
-                                        <td>{isPaid ? (payment.paymentMethod || 'Online') : '-'}</td>
-                                        <td style={{ fontSize: '0.9rem' }}>
+                                        <td data-label="Contributor" style={{ padding: '1rem 0', fontWeight: 'bold' }}>{contributor.groupName}</td>
+                                        <td data-label="Monthly Amount">₹{contributor.monthlyAmount}</td>
+                                        <td data-label="Paid Amount">{isPaid ? `₹${payment.amount}` : '-'}</td>
+                                        <td data-label="Method">{isPaid ? (payment.paymentMethod || 'Online') : '-'}</td>
+                                        <td data-label="Paid On" style={{ fontSize: '0.9rem' }}>
                                             {isPaid
                                                 ? new Date(payment.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
                                                 : '-'}
                                         </td>
-                                        <td>
+                                        <td data-label="Status">
                                             <span style={{
                                                 background: isPaid ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
                                                 color: isPaid ? 'var(--success)' : 'var(--danger)',
@@ -165,6 +166,7 @@ const PaymentsPage = () => {
                             })}
                         </tbody>
                     </table>
+                    </div>
                 )}
             </div>
 
@@ -173,7 +175,8 @@ const PaymentsPage = () => {
                 {filteredPayments.length === 0 ? (
                     <p style={{ color: 'var(--text-muted)' }}>No payment history recorded for this month.</p>
                 ) : (
-                <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', marginTop: '1.5rem' }}>
+                <div className="table-scroll">
+                <table className="responsive-table" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', marginTop: '1.5rem' }}>
                     <thead>
                         <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
                             <th style={{ padding: '1rem 0' }}>Date & Time</th>
@@ -188,11 +191,11 @@ const PaymentsPage = () => {
                     <tbody>
                         {filteredPayments.map(p => (
                             <tr key={p._id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                                <td style={{ padding: '1rem 0', fontSize: '0.9rem' }}>{new Date(p.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) || p.month}</td>
-                                <td>{p.month}</td>
-                                <td>{p.groupId?.groupName || 'N/A'}</td>
-                                <td>₹{p.amount}</td>
-                                <td>
+                                <td data-label="Date & Time" style={{ padding: '1rem 0', fontSize: '0.9rem' }}>{new Date(p.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) || p.month}</td>
+                                <td data-label="Month">{p.month}</td>
+                                <td data-label="Contributor">{p.groupId?.groupName || 'N/A'}</td>
+                                <td data-label="Amount">₹{p.amount}</td>
+                                <td data-label="Method">
                                     <span style={{ 
                                         background: 'rgba(255, 255, 255, 0.1)', 
                                         padding: '0.2rem 0.5rem', 
@@ -202,7 +205,7 @@ const PaymentsPage = () => {
                                         {p.paymentMethod || 'Online'}
                                     </span>
                                 </td>
-                                <td>
+                                <td data-label="Status">
                                     <span style={{ 
                                         background: p.status === 'paid' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)', 
                                         color: p.status === 'paid' ? 'var(--success)' : 'var(--danger)',
@@ -214,7 +217,7 @@ const PaymentsPage = () => {
                                     </span>
                                 </td>
                                 {isAdmin && (
-                                <td style={{ textAlign: 'right' }}>
+                                <td data-label="Actions" style={{ textAlign: 'right' }}>
                                     <button 
                                         className="btn" 
                                         style={{ background: 'transparent', border: '1px solid var(--danger)', color: 'var(--danger)', padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}
@@ -229,6 +232,7 @@ const PaymentsPage = () => {
                         ))}
                     </tbody>
                 </table>
+                </div>
                 )}
             </div>
         </div>

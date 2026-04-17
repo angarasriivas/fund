@@ -199,7 +199,7 @@ const LoanPage = () => {
                 </div>
             </div>
 
-            <div className="grid-2" style={{ alignItems: 'flex-start' }}>
+            <div className="grid-2 loan-main-grid" style={{ alignItems: 'flex-start' }}>
                 {isAdmin && (
                 <div className="glass-card">
                     <h3 className="text-gradient">Issue a New Loan</h3>
@@ -213,7 +213,7 @@ const LoanPage = () => {
                             <input type="tel" className="input-field" placeholder="10-digit number" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} required />
                         </div>
                         
-                        <div style={{ display: 'flex', gap: '1rem' }}>
+                        <div className="loan-form-row" style={{ display: 'flex', gap: '1rem' }}>
                             <div className="form-group" style={{ flex: 1 }}>
                                 <label className="input-label">Principal Amount (₹)</label>
                                 <input type="number" className="input-field" placeholder="e.g. 50000" value={amount} onChange={(e) => setAmount(e.target.value)} required />
@@ -275,7 +275,7 @@ const LoanPage = () => {
                                     </div>
                                 </div>
 
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                                <div className="loan-meta-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
                                     <div><strong>Date Issued:</strong> <br/><span style={{ color: 'var(--text-color)' }}>{loan.createdAt ? new Date(loan.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Legacy Issue'}</span></div>
                                     <div><strong>Phone:</strong> <br/><span style={{ color: 'var(--text-color)' }}>{loan.mobileNumber || 'N/A'}</span></div>
                                     <div><strong>Method:</strong> <br/><span style={{ color: 'var(--text-color)' }}>{loan.paymentMode || 'N/A'}</span></div>
@@ -291,7 +291,7 @@ const LoanPage = () => {
 
                                 <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', margin: '1rem 0' }} />
 
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', textAlign: 'center' }}>
+                                <div className="loan-amount-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', textAlign: 'center' }}>
                                     <div>
                                         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '0 0 0.5rem 0' }}>Principal Given</p>
                                         <p style={{ fontWeight: 'bold', fontSize: '1.2rem', margin: 0, color: 'var(--text-color)' }}>₹{loan.amount}</p>

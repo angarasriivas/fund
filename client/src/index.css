@@ -172,6 +172,18 @@ h1, h2, h3 {
   gap: 1.5rem;
 }
 
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+}
+
 .nav-links a {
   color: var(--text-muted);
   text-decoration: none;
@@ -181,4 +193,174 @@ h1, h2, h3 {
 
 .nav-links a:hover, .nav-links a.active {
   color: var(--primary-color);
+}
+
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll table {
+  min-width: 680px;
+}
+
+.sigCanvas {
+  width: 100% !important;
+  height: 150px !important;
+}
+
+@media (max-width: 900px) {
+  .app-container {
+    padding: 1.25rem;
+  }
+
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex;
+  }
+
+  .navbar {
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .nav-links {
+    display: none;
+    order: 3;
+    width: 100%;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: 0.3rem;
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .nav-links a {
+    padding: 0.65rem 0.75rem;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+  }
+}
+
+@media (max-width: 640px) {
+  .app-container {
+    padding: 0.85rem;
+  }
+
+  h1 {
+    font-size: 1.45rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  .glass-card {
+    padding: 1rem;
+  }
+
+  .btn {
+    width: auto;
+  }
+
+  .navbar-brand {
+    font-size: 1.25rem;
+  }
+
+  .navbar-actions {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .navbar-actions .btn {
+    padding: 0.45rem 0.75rem;
+  }
+
+  .navbar-actions span {
+    font-size: 0.72rem !important;
+    padding: 0.25rem 0.55rem !important;
+  }
+
+  .table-scroll {
+    overflow: visible;
+  }
+
+  .table-scroll table.responsive-table {
+    min-width: 0;
+    width: 100%;
+    margin-top: 0.8rem !important;
+  }
+
+  .table-scroll table.responsive-table thead {
+    display: none;
+  }
+
+  .table-scroll table.responsive-table tbody,
+  .table-scroll table.responsive-table tr,
+  .table-scroll table.responsive-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table-scroll table.responsive-table tr {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 0.65rem;
+    margin-bottom: 0.7rem;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .table-scroll table.responsive-table td {
+    border: none !important;
+    text-align: left !important;
+    padding: 0.35rem 0;
+  }
+
+  .table-scroll table.responsive-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-bottom: 0.15rem;
+    font-weight: 600;
+  }
+
+  .table-scroll table.responsive-table td .btn {
+    width: 100%;
+    margin: 0.25rem 0 0 0 !important;
+  }
+
+  .loan-main-grid {
+    gap: 1rem;
+  }
+
+  .loan-form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .loan-meta-grid,
+  .loan-amount-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .loan-amount-grid > div + div {
+    border-left: none !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 0.8rem;
+    padding-top: 0.8rem;
+  }
 }

@@ -47,7 +47,8 @@ const ContributorListPage = () => {
             {groups.length === 0 ? (
                 <p style={{ color: 'var(--text-muted)' }}>You haven't added anyone yet.</p>
             ) : (
-                <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', marginTop: '1.5rem' }}>
+                <div className="table-scroll">
+                <table className="responsive-table" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', marginTop: '1.5rem' }}>
                     <thead>
                         <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
                             <th style={{ padding: '1rem 0' }}>Contributor Name</th>
@@ -58,10 +59,10 @@ const ContributorListPage = () => {
                     <tbody>
                         {groups.map(g => (
                             <tr key={g._id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                                <td style={{ padding: '1rem 0', fontWeight: 'bold' }}>{g.groupName}</td>
-                                <td>₹{g.monthlyAmount}</td>
+                                <td data-label="Contributor Name" style={{ padding: '1rem 0', fontWeight: 'bold' }}>{g.groupName}</td>
+                                <td data-label="Amount">₹{g.monthlyAmount}</td>
                                 {isAdmin && (
-                                <td style={{ textAlign: 'right' }}>
+                                <td data-label="Actions" style={{ textAlign: 'right' }}>
                                     <button 
                                         className="btn btn-primary" 
                                         style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', marginRight: '0.5rem' }}
@@ -84,6 +85,7 @@ const ContributorListPage = () => {
                         ))}
                     </tbody>
                 </table>
+                </div>
             )}
             
             <PaymentGatewayModal 
