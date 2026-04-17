@@ -14,3 +14,6 @@ build/
 .cursor/
 Thumbs.db
 
+# Local SQLite database files
+server/data/
+
