@@ -1,13 +1,23 @@
-const { initDb, dbPath } = require('./db');
+require('dotenv').config();
+const mongoose = require('mongoose');
 
-console.log('Attempting to initialize SQLite database...');
+console.log('Attempting to connect to MongoDB...');
 
-initDb()
+if (!process.env.MONGO_URI) {
+  console.log('FAILED: MONGO_URI is not set');
+  process.exit(1);
+}
+
+mongoose
+  .connect(process.env.MONGO_URI, {
+    serverSelectionTimeoutMS: 8000,
+    socketTimeoutMS: 45000,
+  })
   .then(() => {
-    console.log(`SUCCESS! SQLite ready at: ${dbPath}`);
+    console.log('SUCCESS! MongoDB connected.');
     process.exit(0);
   })
   .catch((err) => {
-    console.log('FAILED to initialize:', err.message);
+    console.log('FAILED to connect:', err.message);
     process.exit(1);
   });

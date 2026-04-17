@@ -2,9 +2,10 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
-const { get, run, initDb } = require('./db');
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const User = require('./models/User');
 
 const authRoutes = require('./routes/auth');
 const groupRoutes = require('./routes/group');
@@ -108,7 +109,9 @@ app.get('/', (req, res) => {
 
 app.get('/health', async (req, res) => {
   try {
-    await get('SELECT 1 as ok');
+    const state = mongoose.connection.readyState;
+    // 1 = connected
+    if (state !== 1) return res.status(500).json({ status: 'error', db: 'disconnected' });
     return res.status(200).json({ status: 'ok' });
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
@@ -119,17 +122,34 @@ const PORT = process.env.PORT || 5000;
 
 async function startServer() {
   try {
-    await initDb();
+    if (!process.env.MONGO_URI) {
+      throw new Error('MONGO_URI is not set');
+    }
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('MongoDB connected');
 
-    const existingAdmin = await get('SELECT id FROM users WHERE email = ?', ['admin@fundflow.com']);
+    const existingAdmin = await User.findOne({ email: 'admin@fundflow.com' });
     if (!existingAdmin) {
       const adminPassword = await bcrypt.hash('Admin@123', 12);
-      await run(
-        `INSERT INTO users (name, email, password, role)
-         VALUES (?, ?, ?, 'admin')`,
-        ['FundFlow Admin', 'admin@fundflow.com', adminPassword]
-      );
+      await User.create({
+        name: 'FundFlow Admin',
+        email: 'admin@fundflow.com',
+        password: adminPassword,
+        role: 'admin',
+      });
       console.log('Default admin created: admin@fundflow.com / Admin@123');
+    }
+
+    const existingUser = await User.findOne({ email: 'user@fundflow.com' });
+    if (!existingUser) {
+      const userPassword = await bcrypt.hash('User@123', 12);
+      await User.create({
+        name: 'FundFlow User',
+        email: 'user@fundflow.com',
+        password: userPassword,
+        role: 'user',
+      });
+      console.log('Default user created: user@fundflow.com / User@123');
     }
 
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

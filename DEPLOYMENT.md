@@ -1,6 +1,6 @@
 # FundFlow Deployment Guide
 
-## 1) Deploy Backend (Render + SQLite)
+## 1) Deploy Backend (Render + MongoDB Atlas)
 
 1. Push project to GitHub.
 2. Create a new **Web Service** in Render pointing to the `server` folder.
@@ -9,14 +9,20 @@
    - Start Command: `npm start`
 4. Add environment variables in Render:
    - `PORT=5000`
+   - `MONGO_URI=...` (MongoDB Atlas connection string)
    - `JWT_SECRET=...` (long random value)
    - `CORS_ORIGIN=https://<your-frontend-domain>.vercel.app`
    - `ADMIN_IMPORT_SECRET=...` (required for `POST /api/admin/import`)
-5. Add a **Persistent Disk** in Render (required for SQLite):
-   - Mount path: `/opt/render/project/src/server/data`
-   - This keeps `fundflow.sqlite` safe across restart/redeploy.
-6. Deploy and copy backend URL, for example:
+5. Deploy and copy backend URL, for example:
    - `https://fundflow-api.onrender.com`
+
+### MongoDB Atlas quick setup (free tier)
+
+1. Create a free cluster in Atlas.
+2. Create a DB user + password.
+3. Network access:
+   - For easiest setup: allow `0.0.0.0/0` (later restrict).
+4. Copy the connection string and set it as `MONGO_URI` in Render.
 
 ## 2) Deploy Frontend (Vercel)
 
@@ -76,7 +82,7 @@ Restore from a previous backup JSON:
 - `helmet` is enabled for secure HTTP headers.
 - Login endpoint is rate-limited (`/api/auth/login`).
 - Health endpoint is available at `GET /health`.
-- Audit logs are recorded in SQLite table `audit_logs` for admin backup actions (export/download/import).
+- Audit logs are recorded in MongoDB collection `auditlogs` for admin backup actions (export/download/import).
 
 ## 7) Security Before Real Usage
 

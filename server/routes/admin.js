@@ -1,16 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const { requireAuth, requireRole } = require('../middleware/auth');
-const { all, run } = require('../db');
-const { logAuditEvent } = require('../utils/audit');
+const User = require('../models/User');
+const Group = require('../models/Group');
+const Payment = require('../models/Payment');
+const Loan = require('../models/Loan');
+const AuditLog = require('../models/AuditLog');
 
 async function getExportPayload() {
-  const [users, groups, groupMembers, payments, loans] = await Promise.all([
-    all('SELECT id, name, email, password, role, created_at, updated_at FROM users ORDER BY id ASC'),
-    all('SELECT * FROM groups ORDER BY id ASC'),
-    all('SELECT * FROM group_members ORDER BY group_id ASC, user_id ASC'),
-    all('SELECT * FROM payments ORDER BY id ASC'),
-    all('SELECT * FROM loans ORDER BY id ASC'),
+  const [users, groups, payments, loans] = await Promise.all([
+    User.find({}).lean(),
+    Group.find({}).lean(),
+    Payment.find({}).lean(),
+    Loan.find({}).lean(),
   ]);
 
   return {
@@ -18,18 +20,31 @@ async function getExportPayload() {
     counts: {
       users: users.length,
       groups: groups.length,
-      groupMembers: groupMembers.length,
       payments: payments.length,
       loans: loans.length,
     },
     data: {
       users,
       groups,
-      groupMembers,
       payments,
       loans,
     },
   };
+}
+
+async function logAuditEvent(req, { action, resource, details }) {
+  try {
+    await AuditLog.create({
+      actorUserId: req?.user?.id,
+      action,
+      resource,
+      details,
+      ipAddress: req.ip || req.headers['x-forwarded-for'],
+      userAgent: req.headers['user-agent'],
+    });
+  } catch {
+    // Audit logging should never break the request
+  }
 }
 
 router.get('/export', requireAuth, requireRole('admin'), async (req, res) => {
@@ -77,115 +92,35 @@ router.post('/import', requireAuth, requireRole('admin'), async (req, res) => {
   const backup = req.body && req.body.data ? req.body.data : req.body;
   const users = Array.isArray(backup?.users) ? backup.users : null;
   const groups = Array.isArray(backup?.groups) ? backup.groups : null;
-  const groupMembers = Array.isArray(backup?.groupMembers) ? backup.groupMembers : null;
   const payments = Array.isArray(backup?.payments) ? backup.payments : null;
   const loans = Array.isArray(backup?.loans) ? backup.loans : null;
 
-  if (!users || !groups || !groupMembers || !payments || !loans) {
+  if (!users || !groups || !payments || !loans) {
     return res.status(400).json({
-      message: 'Invalid backup format. Expected users, groups, groupMembers, payments and loans arrays.',
+      message: 'Invalid backup format. Expected users, groups, payments and loans arrays.',
     });
   }
 
   try {
-    await run('BEGIN TRANSACTION');
-    await run('DELETE FROM group_members');
-    await run('DELETE FROM loans');
-    await run('DELETE FROM payments');
-    await run('DELETE FROM groups');
-    await run('DELETE FROM users');
+    await Promise.all([
+      User.deleteMany({}),
+      Group.deleteMany({}),
+      Payment.deleteMany({}),
+      Loan.deleteMany({}),
+    ]);
 
-    for (const user of users) {
-      await run(
-        `INSERT INTO users (id, name, email, password, role, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-          user.id,
-          user.name,
-          user.email,
-          user.password || '',
-          user.role || 'user',
-          user.created_at || new Date().toISOString(),
-          user.updated_at || new Date().toISOString(),
-        ]
-      );
-    }
+    // Insert in order to satisfy references (users -> groups -> payments/loans)
+    await User.insertMany(users, { ordered: false });
+    await Group.insertMany(groups, { ordered: false });
+    await Payment.insertMany(payments, { ordered: false });
+    await Loan.insertMany(loans, { ordered: false });
 
-    for (const group of groups) {
-      await run(
-        `INSERT INTO groups (id, group_name, admin_id, monthly_amount, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [
-          group.id,
-          group.group_name,
-          group.admin_id,
-          group.monthly_amount,
-          group.created_at || new Date().toISOString(),
-          group.updated_at || new Date().toISOString(),
-        ]
-      );
-    }
-
-    for (const gm of groupMembers) {
-      await run(
-        `INSERT INTO group_members (group_id, user_id, created_at)
-         VALUES (?, ?, ?)`,
-        [gm.group_id, gm.user_id, gm.created_at || new Date().toISOString()]
-      );
-    }
-
-    for (const payment of payments) {
-      await run(
-        `INSERT INTO payments (
-          id, user_id, group_id, month, status, amount, payment_method, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          payment.id,
-          payment.user_id,
-          payment.group_id,
-          payment.month,
-          payment.status || 'not paid',
-          payment.amount || 0,
-          payment.payment_method || 'Online',
-          payment.created_at || new Date().toISOString(),
-          payment.updated_at || new Date().toISOString(),
-        ]
-      );
-    }
-
-    for (const loan of loans) {
-      await run(
-        `INSERT INTO loans (
-          id, user_id, group_id, borrower_name, mobile_number, guarantor_name, guarantor_signature,
-          payment_mode, amount, interest_amount, remaining, status, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          loan.id,
-          loan.user_id,
-          loan.group_id || null,
-          loan.borrower_name || 'Unknown Borrower',
-          loan.mobile_number || 'N/A',
-          loan.guarantor_name || 'None',
-          loan.guarantor_signature || '',
-          loan.payment_mode || 'Cash',
-          loan.amount || 0,
-          loan.interest_amount || 0,
-          loan.remaining || 0,
-          loan.status || 'active',
-          loan.created_at || new Date().toISOString(),
-          loan.updated_at || new Date().toISOString(),
-        ]
-      );
-    }
-
-    await run('COMMIT');
     await logAuditEvent(req, {
       action: 'admin_import_restore',
       resource: 'backup',
       details: {
         users: users.length,
         groups: groups.length,
-        groupMembers: groupMembers.length,
         payments: payments.length,
         loans: loans.length,
       },
@@ -195,17 +130,11 @@ router.post('/import', requireAuth, requireRole('admin'), async (req, res) => {
       counts: {
         users: users.length,
         groups: groups.length,
-        groupMembers: groupMembers.length,
         payments: payments.length,
         loans: loans.length,
       },
     });
   } catch (err) {
-    try {
-      await run('ROLLBACK');
-    } catch {
-      // Ignore rollback errors; primary error is returned.
-    }
     return res.status(500).json({ message: err.message });
   }
 });
