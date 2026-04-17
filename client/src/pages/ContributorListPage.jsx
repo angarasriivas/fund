@@ -19,10 +19,16 @@ const ContributorListPage = () => {
     const fetchGroups = async (userId) => {
         try {
             const res = await apiFetch(`/api/groups/user/${userId}`);
-            const data = await res.json();
-            setGroups(data);
+            const raw = await res.text();
+            const data = raw ? JSON.parse(raw) : [];
+            if (!res.ok) {
+                alert(data?.message || 'Failed to load contributor list. Please sign in again.');
+                return;
+            }
+            setGroups(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error(error);
+            alert('Failed to load contributor list (network error).');
         }
     };
 
@@ -33,9 +39,14 @@ const ContributorListPage = () => {
             });
             if (res.ok) {
                 setGroups(groups.filter(g => g._id !== id));
+            } else {
+                const raw = await res.text();
+                const data = raw ? JSON.parse(raw) : {};
+                alert(data?.message || 'Failed to remove contributor.');
             }
         } catch (error) {
             console.error(error);
+            alert('Failed to remove contributor (network error).');
         }
     };
 

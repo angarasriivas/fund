@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -12,7 +12,18 @@ import RequireAdmin from './components/RequireAdmin';
 import './index.css';
 
 function App() {
-  const isAuthenticated = !!localStorage.getItem('token');
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('token'));
+
+  useEffect(() => {
+    const syncAuth = () => setIsAuthenticated(!!localStorage.getItem('token'));
+    // `storage` fires for other tabs; `authchange` is a manual event we dispatch in this app.
+    window.addEventListener('storage', syncAuth);
+    window.addEventListener('authchange', syncAuth);
+    return () => {
+      window.removeEventListener('storage', syncAuth);
+      window.removeEventListener('authchange', syncAuth);
+    };
+  }, []);
 
   return (
     <Router>

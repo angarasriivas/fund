@@ -11,8 +11,8 @@ const Navbar = () => {
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        window.dispatchEvent(new Event('authchange'));
         navigate('/login');
-        window.location.reload();
     };
 
     const closeMenu = () => setMenuOpen(false);

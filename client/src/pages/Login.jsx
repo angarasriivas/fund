@@ -19,22 +19,33 @@ const Login = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(isLogin ? { email: formData.email, password: formData.password } : formData)
       });
-      const data = await response.json();
+      const raw = await response.text();
+      let data;
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        data = { message: raw };
+      }
       
       if (response.ok) {
         if (isLogin) {
+          if (portalType === 'admin' && data?.result?.role !== 'admin') {
+            alert('This account is not an admin. Please use the User Login portal or sign in with an admin account.');
+            return;
+          }
           localStorage.setItem('token', data.token);
           localStorage.setItem('user', JSON.stringify(data.result));
-          window.location.href = '/';
+          window.dispatchEvent(new Event('authchange'));
+          navigate('/', { replace: true });
         } else {
           setIsLogin(true);
           alert('Registration successful! Please sign in.');
         }
       } else {
-        alert(data.message || 'Error occurred');
+        alert(data?.message || 'Error occurred');
       }
     } catch (err) {
-      alert('Network error');
+      alert(`Network error: could not reach backend at ${API_BASE_URL}`);
     }
   };
 
